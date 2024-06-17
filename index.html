@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>傷心集散地😭</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #35424a;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+        header h1 {
+            text-align: center;
+            margin: 0;
+        }
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('background.jpg') no-repeat center center/cover;
+            color: #ffffff;
+            text-align: center;
+        }
+        .cover h1 {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+        .cover button {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background: #e8491d;
+            border: none;
+            color: #ffffff;
+            border-radius: 5px;
+        }
+        .main {
+            display: none;
+            padding: 15px;
+            background: #ffffff;
+            margin-top: 10px;
+        }
+        .main h2 {
+            color: #35424a;
+        }
+        .form-container {
+            margin-top: 20px;
+        }
+        .form-container input, .form-container textarea, .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message-list {
+            margin-top: 20px;
+        }
+        .message-item {
+            background: #ffffff;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: #e8491d 1px solid;
+        }
+        .message-item h3 {
+            margin: 0;
+            color: #35424a;
+        }
+        .message-item p {
+            margin: 10px 0;
+        }
+        .reply-form {
+            margin-top: 10px;
+        }
+        .reply-form textarea, .reply-form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .reply-list {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        .reply-item {
+            background: #f4f4f4;
+            padding: 10px;
+            border: #ccc 1px solid;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>傷心集散地😭</h1>
+        </div>
+    </header>
+
+    <div class="cover" id="cover">
+        <h1>歡迎來到傷心集散地</h1>
+        <button onclick="enterSite()">進入</button>
+    </div>
+
+    <div class="container main" id="main">
+        <h2>發布留言</h2>
+        <div class="form-container">
+            <input type="text" id="username" placeholder="快說出泥の名字！">
+            <textarea id="message" placeholder="泥の留言"></textarea>
+            <button onclick="postMessage()">丟進垃圾桶！</button>
+        </div>
+
+        <div class="message-list" id="messageList">
+            <!-- 留言列表將在此處顯示 -->
+        </div>
+    </div>
+
+    <script>
+        function enterSite() {
+            document.getElementById('cover').style.display = 'none';
+            document.getElementById('main').style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchMessages);
+
+        function fetchMessages() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            messages.forEach(message => {
+                const messageItem = document.createElement('div');
+                messageItem.classList.add('message-item');
+                messageItem.innerHTML = `
+                    <h3>${message.username}</h3>
+                    <p>${message.content}</p>
+                    <div class="reply-list" id="replyList-${message.id}">
+                        ${message.replies.map(reply => `
+                            <div class="reply-item">
+                                <p><strong>${reply.username}</strong>: ${reply.content}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="reply-form">
+                        <textarea placeholder="我要回覆他～/ 我也Emo了" id="reply-${message.id}"></textarea>
+                        <button onclick="postReply(${message.id})">我要回覆他～/ 我也Emo了</button>
+                    </div>
+                `;
+                messageList.appendChild(messageItem);
+            });
+        }
+
+        function postMessage() {
+            const username = document.getElementById('username').value;
+            const content = document.getElementById('message').value;
+            if (!username || !content) {
+                alert('請填寫名字和留言內容');
+                return;
+            }
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const message = {
+                id: Date.now(),
+                username,
+                content,
+                replies: []
+            };
+            messages.push(message);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            document.getElementById('username').value = '';
+            document.getElementById('message').value = '';
+            fetchMessages();
+        }
+
+        function postReply(messageId) {
+            const username = prompt('請輸入泥の名字');
+            const content = document.getElementById(`reply-${messageId}`).value;
+            if (!username || !content) {
+                alert('請填寫名字和回覆內容');
+                return;
+            }
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const message = messages.find(msg => msg.id === messageId);
+            if (!message) {
+                alert('留言不存在');
+                return;
+            }
+            const reply = {
+                username,
+                content
+            };
+            message.replies.push(reply);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            fetchMessages();
+        }
+    </script>
+</body>
+</html>
